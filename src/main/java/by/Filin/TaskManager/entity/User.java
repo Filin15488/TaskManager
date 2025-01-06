@@ -7,13 +7,14 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"categories", "tags"})
-@ToString(exclude = {"categories", "tags"})
+@EqualsAndHashCode  (exclude = {"categories", "tags", "tasks"})
+@ToString           (exclude = {"categories", "tags", "tasks"})
 @Entity
 @DynamicInsert
 @Table(name = "users", schema = "public")
@@ -47,5 +48,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Tag> tags;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Task> tasks;
 }
 
