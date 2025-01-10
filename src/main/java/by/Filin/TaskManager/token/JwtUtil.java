@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -17,30 +18,30 @@ public class JwtUtil {
 
     @Getter
     @Value("${jwt.AccessLifetime}")
-    private long accessTokenExpirationMs;
+    private Duration accessTokenDuration;
 
     @Getter
     @Value("${jwt.RefreshLifetime}")
-    private long refreshTokenExpirationMs;
+    private Duration refreshTokenDuration;
 
     // Генерация токена с указанием времени жизни
-    private String generateToken(String username, long expiration) {
+    private String generateToken(String username, Duration expiration) {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration.toMillis()))
                 .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
     }
 
     // Генерация access токена
     public String generateAccessToken(String username) {
-        return generateToken(username, accessTokenExpirationMs);
+        return generateToken(username, accessTokenDuration);
     }
 
     // Генерация refresh токена
     public String generateRefreshToken(String username) {
-        return generateToken(username, refreshTokenExpirationMs);
+        return generateToken(username, refreshTokenDuration);
     }
 
     // Извлечение username из токена

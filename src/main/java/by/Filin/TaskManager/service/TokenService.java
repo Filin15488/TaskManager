@@ -27,7 +27,7 @@ public class TokenService {
         AccessToken accessToken = new AccessToken();
         accessToken.setToken(token);
         accessToken.setUser(user);
-        accessToken.setExpiresAt(new Date(System.currentTimeMillis() + jwtUtil.getAccessTokenExpirationMs()));
+        accessToken.setExpiresAt(new Date(System.currentTimeMillis() + jwtUtil.getAccessTokenDuration().toMillis()));
 
         return accessTokenRepository.save(accessToken);
     }
@@ -37,7 +37,7 @@ public class TokenService {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setToken(token);
         refreshToken.setUser(user);
-        refreshToken.setExpiresAt(new Date(System.currentTimeMillis() + jwtUtil.getRefreshTokenExpirationMs()));
+        refreshToken.setExpiresAt(new Date(System.currentTimeMillis() + jwtUtil.getRefreshTokenDuration().toMillis()));
         return refreshTokenRepository.save(refreshToken);
     }
 
