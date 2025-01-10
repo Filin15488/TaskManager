@@ -50,7 +50,7 @@ public class UserMapper {
         dto.setId(category.getId());
         dto.setName(category.getName());
         dto.setCreatedAt(category.getCreatedAt());
-        dto.setUserId(category.getId());
+        dto.setUserId(category.getUser().getId());
         return dto;
     }
 
