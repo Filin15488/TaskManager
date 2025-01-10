@@ -8,7 +8,9 @@ import org.hibernate.annotations.DynamicInsert;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -31,7 +33,8 @@ public class User {
     private String email;
 
     @Column(name = "password_hash", nullable = false)
-    private String password;
+//    private String password;
+    private String passwordHash;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", insertable = false, updatable = false)
@@ -52,5 +55,17 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Task> tasks;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<AccessToken> accessTokens;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<RefreshToken> refreshTokens;
+
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
 }
 

@@ -8,6 +8,7 @@ import by.Filin.TaskManager.mapper.UserMapper;
 import by.Filin.TaskManager.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder; // Объект для хэширования и проверки паролей
 
     @Autowired
     public UserService(UserMapper userMapper, UserRepository userRepository) {
@@ -44,7 +48,7 @@ public class UserService {
             user.setUsername(userUpdateDTO.getUsername());
         }
         if (userUpdateDTO.getPassword() != null) {
-            user.setPassword(userUpdateDTO.getPassword());
+            user.setPasswordHash(passwordEncoder.encode(userUpdateDTO.getPassword()));
         }
         if (userUpdateDTO.getEmail() != null) {
             user.setEmail(userUpdateDTO.getEmail());

@@ -7,12 +7,17 @@ import by.Filin.TaskManager.DTO.user.UserRequestDTO;
 import by.Filin.TaskManager.entity.Category;
 import by.Filin.TaskManager.entity.Tag;
 import by.Filin.TaskManager.entity.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
 @Component
 public class UserMapper {
+
+    @Autowired
+    private PasswordEncoder passwordEncoder; // Объект для хэширования и проверки паролей
 
     public UserDTO toDTO(User user) {
         UserDTO dto = new UserDTO();
@@ -58,7 +63,7 @@ public class UserMapper {
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
+        user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         return user;
     }
 
