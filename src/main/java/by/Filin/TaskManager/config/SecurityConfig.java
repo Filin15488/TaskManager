@@ -4,8 +4,12 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
+import by.Filin.TaskManager.service.CustomUserDetailsService;
 import by.Filin.TaskManager.service.UserDetailsServiceImpl;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,9 +24,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.io.IOException;
 
+@Slf4j
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
+
+    private static final Logger logger = Logger.getLogger(SecurityConfig.class.getName());
 
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
@@ -37,18 +44,28 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        logger.info("Initialize SecurityFilterChain...");
         return http
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS))
-//                .exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(customAccessDeniedHandler))
-//                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(
-//                        (request, response, exception) -> getEmptyTokenResponse(response)
-//                ))
-                .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll() // Разрешить доступ
-                        .anyRequest().authenticated()
+                .sessionManagement(sessionManagement ->
+                        {
+                            logger.info("Setting session management to STATELESS");
+                            sessionManagement.sessionCreationPolicy(STATELESS);
+
+                        }
+                )
+
+                .authorizeHttpRequests(authorizeHttpRequests ->
+                        {
+                            logger.info("Configuring authorization rules...");
+                            authorizeHttpRequests
+                                    .requestMatchers("/api/auth/**").permitAll()
+                                    .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
+                                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll() // Разрешить доступ
+                                    .anyRequest().authenticated();
+                        }
+
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

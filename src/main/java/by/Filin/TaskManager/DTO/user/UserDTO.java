@@ -1,6 +1,7 @@
 package by.Filin.TaskManager.DTO.user;
 
 import by.Filin.TaskManager.DTO.category.CategoryDTO;
+import by.Filin.TaskManager.DTO.role.RoleDTO;
 import by.Filin.TaskManager.DTO.tag.TagDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,4 +19,5 @@ public class UserDTO {
     private OffsetDateTime updatedAt;
     private List<TagDTO> tags;
     private List<CategoryDTO> categories;
+    private RoleDTO role;
 }

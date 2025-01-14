@@ -20,7 +20,7 @@ public class Role {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String name; // Например, ROLE_USER, ROLE_ADMIN
+    private String name;
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<User> users;

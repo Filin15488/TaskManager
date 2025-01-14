@@ -1,6 +1,7 @@
 package by.Filin.TaskManager.mapper;
 
 import by.Filin.TaskManager.DTO.category.CategoryDTO;
+import by.Filin.TaskManager.DTO.role.RoleDTO;
 import by.Filin.TaskManager.DTO.tag.TagDTO;
 import by.Filin.TaskManager.DTO.user.UserDTO;
 import by.Filin.TaskManager.DTO.user.UserRequestDTO;
@@ -37,6 +38,9 @@ public class UserMapper {
             dto.setCategories(user.getCategories().stream()
                     .map(this::toCategoryDTO)
                     .collect(Collectors.toList()));
+        }
+        if (user.getRole() != null) {
+            dto.setRole(new RoleDTO(user.getId(), user.getRole().getName()));
         }
 
         return dto;
