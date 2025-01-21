@@ -11,22 +11,20 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
 @Tag(name = "User Controller", description = "Контроллер для управления пользователями")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     @Operation(summary = "Получить пользователя по ID", description = "Возвращает данные пользователя по его уникальному идентификатору. Если пользователя нет, то возвращает 404",
             responses = {
@@ -43,6 +41,7 @@ public class UserController {
             }
     )
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getUserById(@Parameter(description = "ID пользователя", required = true) @PathVariable Long id) {
         return
                 ResponseEntity.ok(userService.getUserById(id));
@@ -59,6 +58,7 @@ public class UserController {
 
     )
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createUser(@Parameter(description = "Данные для создания пользователя", required = true) @RequestBody UserRequestDTO userRequestDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequestDTO));
     }
@@ -79,6 +79,7 @@ public class UserController {
 
     )
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> updateUser(@Parameter(description = "ID пользователя", required = true) @PathVariable Long id,
                                               @Parameter(description = "Данные для обновления пользователя", required = true)
                                               @RequestBody UserUpdateDTO updateDTO) {
@@ -101,6 +102,7 @@ public class UserController {
 
     )
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "ID пользователя", required = true)
             @PathVariable Long id) {

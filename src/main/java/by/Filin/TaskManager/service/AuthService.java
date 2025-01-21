@@ -18,6 +18,7 @@ import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,11 +49,11 @@ public class AuthService {
         // Загружаем пользователя
         UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
         if (!passwordEncoder.matches(authRequest.getPassword(), userDetails.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new AccessDeniedException("Invalid credentials");
         }
 
         User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AccessDeniedException("User not found"));
 
         // Получаем токены из базы данных
         AccessToken currentAccessToken = tokenService.getAccessTokenFromDB(user).getLast();
@@ -80,11 +81,11 @@ public class AuthService {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
         if (!jwtUtil.validateToken(refreshToken, userDetails)) {
-            throw new RuntimeException("Invalid refresh token");
+            throw new AccessDeniedException("Invalid refresh token");
         }
 
         User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AccessDeniedException("User not found"));
 
         tokenService.deactivateAllAccessTokenByUserId(user.getId());
 //        String newAccessToken = jwtUtil.generateAccessToken(userDetails.getUsername());

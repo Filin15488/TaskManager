@@ -1,6 +1,5 @@
 package by.Filin.TaskManager.config;
 
-import by.Filin.TaskManager.service.CustomUserDetailsService;
 import by.Filin.TaskManager.service.UserDetailsServiceImpl;
 import by.Filin.TaskManager.token.JwtUtil;
 import jakarta.servlet.FilterChain;
@@ -9,7 +8,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +67,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         try {
             // Извлечение токена
-            String jwtToken = getJwtFromRequest(request);
+            String jwtToken = getAccessJwtFromRequest(request);
             logger.info("Extracted JWT token: " + jwtToken);
 
             if (jwtToken != null) {
@@ -104,7 +102,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     }
 
 
-    private String getJwtFromRequest(HttpServletRequest request) {
+    private String getAccessJwtFromRequest(HttpServletRequest request) {
 
         // Проверка заголовка Authorization
         String authHeader = request.getHeader("Authorization");
@@ -122,8 +120,29 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-//                System.out.println(cookie.getName() + ": " + cookie.getValue());
                 if ("access_token".equals(cookie.getName())) { // Имя куки должно совпадать
+                    return cookie.getValue();
+                }
+            }
+        }
+
+        // Если токен не найден нигде
+        return null;
+    }
+
+    private String getRefreshJwtFromRequest(HttpServletRequest request) {
+
+        // Проверка токена в пользовательском заголовке Refresh-Token
+        String refreshTokenHeader = request.getHeader("Refresh-Token");
+        if (refreshTokenHeader != null && !refreshTokenHeader.isEmpty()) {
+            return refreshTokenHeader;
+        }
+
+        // Проверка токена в куках
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refresh_token".equals(cookie.getName())) { // Имя куки должно совпадать
                     return cookie.getValue();
                 }
             }
