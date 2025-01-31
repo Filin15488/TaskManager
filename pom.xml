@@ -147,6 +147,7 @@
 
 	</dependencies>
 	<build>
+		<finalName>taskManager</finalName>
 		<plugins>
 <!--			<plugin>-->
 <!--				<groupId>org.apache.maven.plugins</groupId>-->
@@ -160,18 +161,18 @@
 <!--					</annotationProcessorPaths>-->
 <!--				</configuration>-->
 <!--			</plugin>-->
-			<!--			<plugin>-->
-			<!--				<groupId>org.springframework.boot</groupId>-->
-			<!--				<artifactId>spring-boot-maven-plugin</artifactId>-->
-			<!--				<configuration>-->
-			<!--					<excludes>-->
-			<!--						<exclude>-->
-			<!--							<groupId>org.projectlombok</groupId>-->
-			<!--							<artifactId>lombok</artifactId>-->
-			<!--						</exclude>-->
-			<!--					</excludes>-->
-			<!--				</configuration>-->
-			<!--			</plugin>-->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -187,6 +188,19 @@
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>resolve-dependencies</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>resolve</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

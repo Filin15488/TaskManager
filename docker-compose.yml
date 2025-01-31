@@ -1,0 +1,45 @@
+# Use postgres/example user/password credentials
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: TaskManager
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
+  spring-app:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./target:/app/target
+      - ./logs:/app/logs
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+        SPRING_DATASOURCE_URL: 'jdbc:postgresql://db:5432/TaskManager'
+        JAVA_OPTS: '-Xmx512m'
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080

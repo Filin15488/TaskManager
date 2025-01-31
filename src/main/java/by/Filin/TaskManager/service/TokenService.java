@@ -49,16 +49,33 @@ public class TokenService {
     }
 
     public List<AccessToken> getAccessTokenFromDB(User user) {
-        return accessTokenRepository.findAllByUserId(user.getId()).orElseThrow(
-                () -> new RuntimeException("User not found")
-        );
+        List<AccessToken> tokens = accessTokenRepository.findAllByUserId(user.getId());
+        if (tokens.isEmpty()) {
+            throw new RuntimeException("Access tokens not found for user: " + user.getId());
+        }
+        return tokens;
     }
 
     public List<RefreshToken> getRefreshTokenFromDB(User user) {
-        return refreshTokenRepository.findAllByUserId(user.getId()).orElseThrow(
-                () -> new RuntimeException("User not found")
-        );
+        List<RefreshToken> tokens = refreshTokenRepository.findAllByUserId(user.getId());
+        if (tokens.isEmpty()) {
+            throw new RuntimeException("Refresh tokens not found for user: " + user.getId());
+        }
+        return tokens;
     }
+
+
+//    public List<AccessToken> getAccessTokenFromDB(User user) {
+//        return accessTokenRepository.findAllByUserId(user.getId()).orElseThrow(
+//                () -> new RuntimeException("User not found")
+//        );
+//    }
+//
+//    public List<RefreshToken> getRefreshTokenFromDB(User user) {
+//        return refreshTokenRepository.findAllByUserId(user.getId()).orElseThrow(
+//                () -> new RuntimeException("User not found")
+//        );
+//    }
 
     public boolean validateRefreshToken(String token) {
         return refreshTokenRepository.findByToken(token)
@@ -77,15 +94,30 @@ public class TokenService {
                 .map(accessToken -> accessToken.isValid() && accessToken.getExpiresAt().after(new Date()))
                 .orElse(false);
     }
-
     public void deactivateAllAccessTokenByUserId(Long userId) {
-       List<AccessToken> accessTokens = accessTokenRepository.findAllByUserId(userId).orElseThrow(
-               () -> new RuntimeException("User not found")
-       );
-       for (AccessToken accessToken : accessTokens) {
-           accessToken.setValid(false);
-       }
-       accessTokenRepository.saveAll(accessTokens);
+        List<AccessToken> accessTokens = accessTokenRepository.findAllByUserId(userId);
+
+        if (accessTokens.isEmpty()) {
+            throw new RuntimeException("Access tokens not found for user: " + userId);
+        }
+
+        for (AccessToken accessToken : accessTokens) {
+            accessToken.setValid(false);
+        }
+
+        accessTokenRepository.saveAll(accessTokens);
     }
+
+
+
+//    public void deactivateAllAccessTokenByUserId(Long userId) {
+//       List<AccessToken> accessTokens = accessTokenRepository.findAllByUserId(userId).orElseThrow(
+//               () -> new RuntimeException("User not found")
+//       );
+//       for (AccessToken accessToken : accessTokens) {
+//           accessToken.setValid(false);
+//       }
+//       accessTokenRepository.saveAll(accessTokens);
+//    }
 
 }

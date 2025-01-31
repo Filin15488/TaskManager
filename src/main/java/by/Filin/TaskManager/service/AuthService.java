@@ -8,6 +8,8 @@ import by.Filin.TaskManager.entity.RefreshToken;
 import by.Filin.TaskManager.entity.Role;
 import by.Filin.TaskManager.entity.User;
 import by.Filin.TaskManager.mapper.UserMapper;
+import by.Filin.TaskManager.repository.AccessTokenRepository;
+import by.Filin.TaskManager.repository.RefreshTokenRepository;
 import by.Filin.TaskManager.repository.RoleRepository;
 import by.Filin.TaskManager.repository.UserRepository;
 import by.Filin.TaskManager.token.JwtUtil;
@@ -37,6 +39,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+
+    @Autowired
+    private AccessTokenRepository accessTokenRepository;
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Value("${jwt.AccessLifetime}")
     private Duration accessTokenDuration;
@@ -68,14 +75,29 @@ public class AuthService {
 
         logger.info("user found in the system: " + user.getUsername());
 
+        AccessToken currentAccessToken;
+        RefreshToken currentRefreshToken;
+
+        // Если пользователь логиниться в первый раз
+        if (accessTokenRepository.findAllByUserId(user.getId()).isEmpty() && refreshTokenRepository.findAllByUserId(user.getId()).isEmpty()) {
+            logger.warning("Access token not found");
+            currentAccessToken = tokenService.createAccessToken(user);
+
+            logger.warning("Refresh token not found");
+            currentRefreshToken = tokenService.createRefreshToken(user);
+
+            // Устанавливаем токены в ответ
+            setTokensInResponse(response, currentAccessToken.getToken(), currentRefreshToken.getToken());
+            return userMapper.toDTO(user);
+        }
+
         // Получаем токены из базы данных
-        AccessToken currentAccessToken = tokenService.getAccessTokenFromDB(user).getLast();
-        RefreshToken currentRefreshToken = tokenService.getRefreshTokenFromDB(user).getLast();
+        currentAccessToken = tokenService.getAccessTokenFromDB(user).getLast();
+        currentRefreshToken= tokenService.getRefreshTokenFromDB(user).getLast();
 
         // Проверяем валидность токенов
         boolean accessTokenValid = tokenService.validateAccessToken(currentAccessToken.getToken());
         boolean refreshTokenValid = tokenService.validateRefreshToken(currentRefreshToken.getToken());
-
 
         // Если токен истёк, генерируем новые
         if (!accessTokenValid || !refreshTokenValid) {
@@ -89,7 +111,6 @@ public class AuthService {
 
         // Устанавливаем токены в ответ
         setTokensInResponse(response, currentAccessToken.getToken(), currentRefreshToken.getToken());
-
         return userMapper.toDTO(user);
     }
 
