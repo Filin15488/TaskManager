@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -86,7 +87,7 @@ public class TagController {
     )
     @PostMapping
     public ResponseEntity<TagDTO> createTag(@Parameter(description = "Данные для создания тега", required = true)
-                                                @RequestBody TagRequestDTO tagRequestDTO) {
+                                               @Valid @RequestBody TagRequestDTO tagRequestDTO) {
         TagDTO newTag = tagService.createTag(tagRequestDTO);
         return ResponseEntity.status(201).body(newTag); // 201 Created
     }
@@ -107,7 +108,7 @@ public class TagController {
     @PutMapping("/{id}")
     public ResponseEntity<TagDTO> updateTag(@Parameter(description = "ID тега", required = true) @PathVariable Long id,
                                             @Parameter(description = "Данные для обновления тега", required = true)
-                                            @RequestBody TagUpdateDTO tagUpdateDTO) {
+                                            @Valid @RequestBody TagUpdateDTO tagUpdateDTO) {
         TagDTO updatedTag = tagService.updateTag(id, tagUpdateDTO);
         return ResponseEntity.ok(updatedTag);
     }

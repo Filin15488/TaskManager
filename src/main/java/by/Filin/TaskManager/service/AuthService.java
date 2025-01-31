@@ -2,10 +2,12 @@ package by.Filin.TaskManager.service;
 
 import by.Filin.TaskManager.DTO.jwt.AuthRequest;
 import by.Filin.TaskManager.DTO.jwt.RegisterRequest;
+import by.Filin.TaskManager.DTO.user.UserDTO;
 import by.Filin.TaskManager.entity.AccessToken;
 import by.Filin.TaskManager.entity.RefreshToken;
 import by.Filin.TaskManager.entity.Role;
 import by.Filin.TaskManager.entity.User;
+import by.Filin.TaskManager.mapper.UserMapper;
 import by.Filin.TaskManager.repository.RoleRepository;
 import by.Filin.TaskManager.repository.UserRepository;
 import by.Filin.TaskManager.token.JwtUtil;
@@ -14,7 +16,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.util.logging.Logger;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +36,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
+    private final UserMapper userMapper;
 
     @Value("${jwt.AccessLifetime}")
     private Duration accessTokenDuration;
@@ -45,15 +47,26 @@ public class AuthService {
     @Autowired
     private TokenService tokenService;
 
-    public void login(AuthRequest authRequest, HttpServletResponse response) {
+    public UserDTO login(AuthRequest authRequest, HttpServletResponse response) {
         // Загружаем пользователя
         UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
+        logger.info("login user: " + userDetails.getUsername());
+
         if (!passwordEncoder.matches(authRequest.getPassword(), userDetails.getPassword())) {
+            logger.warning("Wrong password");
             throw new AccessDeniedException("Invalid credentials");
         }
 
         User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new AccessDeniedException("User not found"));
+                .orElseThrow(() ->
+                {
+                    logger.warning("User not found");
+                    new AccessDeniedException("User not found");
+
+                    return null;
+                });
+
+        logger.info("user found in the system: " + user.getUsername());
 
         // Получаем токены из базы данных
         AccessToken currentAccessToken = tokenService.getAccessTokenFromDB(user).getLast();
@@ -63,6 +76,7 @@ public class AuthService {
         boolean accessTokenValid = tokenService.validateAccessToken(currentAccessToken.getToken());
         boolean refreshTokenValid = tokenService.validateRefreshToken(currentRefreshToken.getToken());
 
+
         // Если токен истёк, генерируем новые
         if (!accessTokenValid || !refreshTokenValid) {
             if (!refreshTokenValid) {
@@ -71,8 +85,12 @@ public class AuthService {
             currentAccessToken = tokenService.createAccessToken(user);
         }
 
+        logger.info("Set tokens from user: " + user.getUsername());
+
         // Устанавливаем токены в ответ
         setTokensInResponse(response, currentAccessToken.getToken(), currentRefreshToken.getToken());
+
+        return userMapper.toDTO(user);
     }
 
     public void refreshTokens(String refreshToken, HttpServletResponse response) {
@@ -138,6 +156,9 @@ public class AuthService {
     private void setTokensInResponse(HttpServletResponse response, String accessToken, String refreshToken) {
         response.setHeader("Access-Token", accessToken);
         response.setHeader("Refresh-Token", refreshToken);
+
+        logger.info("Access token: " + accessToken);
+        logger.info("Refresh token: " + refreshToken);
 
         Cookie accessCookie = createCookie("access_token", accessToken, Math.toIntExact(accessTokenDuration.toSeconds()));
         Cookie refreshCookie = createCookie("refresh_token", refreshToken, Math.toIntExact(refreshTokenDuration.toSeconds()));

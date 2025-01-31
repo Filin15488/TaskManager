@@ -9,6 +9,7 @@ import by.Filin.TaskManager.mapper.CategoryMapper;
 import by.Filin.TaskManager.repository.CategoryRepository;
 import by.Filin.TaskManager.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +41,7 @@ public class CategoryService {
         return categoryMapper.toDTO(category);
     }
     @Transactional
-    public CategoryDTO createCategory(CategoryRequestDTO categoryRequestDTO) {
+    public CategoryDTO createCategory(@Valid CategoryRequestDTO categoryRequestDTO) {
         User user = userRepository.findById(categoryRequestDTO.getUserId()).orElseThrow(
                 () -> new EntityNotFoundException("User with id " + categoryRequestDTO.getUserId() + " not found")
         );
@@ -52,7 +53,7 @@ public class CategoryService {
         return categoryMapper.toDTO(category);
     }
     @Transactional
-    public CategoryDTO updateCategory(Long id, CategoryUpdateDTO categoryUpdateDTO) {
+    public CategoryDTO updateCategory(Long id, @Valid CategoryUpdateDTO categoryUpdateDTO) {
         Category category = categoryRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Category with id " + id + " not found"));
         if (categoryUpdateDTO.getName() != null) {
             category.setName(categoryUpdateDTO.getName());

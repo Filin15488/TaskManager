@@ -11,16 +11,20 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityExistsException;
+import jakarta.validation.Valid;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
-@Tag(name = "User Controller", description = "Контроллер для управления пользователями")
+@Tag(name = "User Controller", description = "Контроллер для управления пользователями. Доступен только пользователям с ролью администратор")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -59,8 +63,10 @@ public class UserController {
     )
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createUser(@Parameter(description = "Данные для создания пользователя", required = true) @RequestBody UserRequestDTO userRequestDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequestDTO));
+    public ResponseEntity<?> createUser(
+            @Parameter(description = "Данные для создания пользователя", required = true)
+            @Valid @RequestBody UserRequestDTO userRequestDTO) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequestDTO));
     }
 
     @Operation(summary = "Обновить данные пользователя", description = "Обновляет данные существующего пользователя по его ID",
@@ -82,7 +88,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> updateUser(@Parameter(description = "ID пользователя", required = true) @PathVariable Long id,
                                               @Parameter(description = "Данные для обновления пользователя", required = true)
-                                              @RequestBody UserUpdateDTO updateDTO) {
+                                              @RequestBody @Valid UserUpdateDTO updateDTO) {
         UserDTO updatedUser = userService.updateUser(id, updateDTO);
         return ResponseEntity.ok(updatedUser);
     }

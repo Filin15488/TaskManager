@@ -7,6 +7,11 @@ import by.Filin.TaskManager.entity.*;
 import by.Filin.TaskManager.mapper.TaskMapper;
 import by.Filin.TaskManager.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -71,7 +76,7 @@ public class TaskService {
             Throwable cause = e.getCause();
             if (cause instanceof ConstraintViolationException) {
                 throw new DataIntegrityViolationException(
-                        "Duplicate key value violates unique constraint",
+                        "The tag has already been added to the task earlier",
                         e);
             }
             throw e;
@@ -87,7 +92,7 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskDTO createTask(TaskRequestDTO requestDTO) {
+    public TaskDTO createTask(@Valid TaskRequestDTO requestDTO) {
         // Проверка существования пользователя
         User user = userRepository.findById(requestDTO.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + requestDTO.getUserId()));
@@ -130,7 +135,7 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskDTO updateTask(Long id, TaskUpdateDTO taskUpdateDTO) {
+    public TaskDTO updateTask(Long id, @Valid TaskUpdateDTO taskUpdateDTO) {
         Task task = taskRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Task with id " + id + " not found")
         );
@@ -146,8 +151,8 @@ public class TaskService {
             ));
         }
 
-
-        task.setUpdatedAt(OffsetDateTime.now());
+//        task.setUpdatedAt(OffsetDateTime.now());
+        task.setUpdatedAt(OffsetDateTime.parse(OffsetDateTime.now(ZoneId.systemDefault()).truncatedTo(ChronoUnit.MICROS).format(DateTimeFormatter.ISO_INSTANT)));
 
         return taskMapper.toDTO(taskRepository.save(task));
     }
@@ -164,9 +169,9 @@ public class TaskService {
                 () -> new EntityNotFoundException("Task with id " + id + " not found")
         );
 
-        List<TaskTag> taskTagsToRemove = taskTagRepository.findAllByTaskId(id);
+        List<TaskTag> taskTagsToRemove = taskTagRepository.findAllByTaskId(id).orElse(new ArrayList<>());
 
-        if (taskTagsToRemove != null && !taskTagsToRemove.isEmpty()) {
+        if (!taskTagsToRemove.isEmpty()) {
             taskTagRepository.deleteAll(taskTagsToRemove);
         }
 

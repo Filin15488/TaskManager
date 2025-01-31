@@ -40,7 +40,7 @@ public class UserMapper {
                     .collect(Collectors.toList()));
         }
         if (user.getRole() != null) {
-            dto.setRole(new RoleDTO(user.getId(), user.getRole().getName()));
+            dto.setRole(new RoleDTO(user.getRole().getId(), user.getRole().getName()));
         }
 
         return dto;

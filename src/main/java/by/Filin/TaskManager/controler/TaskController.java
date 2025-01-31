@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -90,7 +91,7 @@ public class TaskController {
     @PostMapping("/{id}/addTag")
 //    public ResponseEntity<?> addTagToTask(@RequestBody TagTaskRequest request) {
     public ResponseEntity<?> addTagToTask(@Parameter(description = "Id таски", required = true) @PathVariable Long id,
-                                          @Parameter(description = "Id тега", required = true) @RequestBody TaskLinkTagDTO request) {
+                                          @Parameter(description = "Id тега", required = true) @Valid @RequestBody TaskLinkTagDTO request) {
         taskService.addTagToTask(id, request.getTagId());
         return ResponseEntity.ok(
                 ResponseBody.builder()
@@ -115,7 +116,7 @@ public class TaskController {
     )
     @DeleteMapping("/{id}/removeTag")
 //    public ResponseEntity<?> removeTagFromTask (@RequestBody TagTaskRequest request) {
-    public ResponseEntity<?> removeTagFromTask (@PathVariable Long id, @RequestBody TaskLinkTagDTO request) {
+    public ResponseEntity<?> removeTagFromTask (@PathVariable Long id, @RequestBody @Valid TaskLinkTagDTO request) {
         taskService.removeTagFromTask(id, request.getTagId());
         return new ResponseEntity<>(ResponseBody.builder()
                 .message("Tag removed successfully")
@@ -137,7 +138,8 @@ public class TaskController {
             })
 
     @PostMapping
-    public ResponseEntity<TaskDTO> createTask(@Parameter(description = "Сущность таски на создание ", required = true) @RequestBody TaskRequestDTO requestDTO) {
+    public ResponseEntity<TaskDTO> createTask(      @Parameter(description = "Сущность таски на создание ", required = true)
+                                                    @RequestBody @Valid TaskRequestDTO requestDTO) {
         TaskDTO createdTask = taskService.createTask(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
     }
@@ -160,7 +162,8 @@ public class TaskController {
     )
     @PutMapping("/{id}")
     public ResponseEntity<?> updateTask(@Parameter(description = "Id таски", required = true) @PathVariable Long id,
-                                        @Parameter(description = "Обновляемые поля", required = true) @RequestBody TaskUpdateDTO taskUpdateDTO) {
+                                        @Parameter(description = "Обновляемые поля", required = true)
+                                        @RequestBody @Valid TaskUpdateDTO taskUpdateDTO) {
         TaskDTO updatedTask = taskService.updateTask(id, taskUpdateDTO);
         return ResponseEntity.ok(updatedTask);
     }

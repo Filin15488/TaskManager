@@ -23,8 +23,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
-        authService.login(authRequest, response);
-        return ResponseEntity.ok().build();
+//        authService.login(authRequest, response);
+        return ResponseEntity.ok().body(authService.login(authRequest, response));
     }
 
     @PostMapping("/refresh")

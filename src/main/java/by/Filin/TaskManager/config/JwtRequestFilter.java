@@ -32,124 +32,108 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
-
-//    @Override
-//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-//
-//        try {
-//            // Попытка извлечения токена (заголовков или кук)
-//            String jwtToken = getJwtFromRequest(request);
-////            System.out.println(request);
-//
-//            // Если токен найден, выполняем проверку
-//            if (jwtToken != null && jwtUtil.isTokenValid(jwtToken, jwtUtil.extractUsername(jwtToken))) {
-//                String username = jwtUtil.extractUsername(jwtToken);
-//
-//                // Если пользователь еще не авторизован в контексте, авторизуем
-//                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-//                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-//                    if (jwtUtil.validateToken(jwtToken, userDetails)) {
-//                        setAuthentication(userDetails, request);
-////                        logger.info("Authentication successful for user: {}", username);
-//                    }
-//                }
-//            }
-//        } catch (Exception ex) {
-//            logger.error("Could not set user authentication", ex);
-//        }
-//
-//        // Передача управления следующему фильтру
-//        filterChain.doFilter(request, response);
-//    }
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         try {
-            // Извлечение токена
-            String jwtToken = getAccessJwtFromRequest(request);
-            logger.info("Extracted JWT token: " + jwtToken);
+            String jwtToken;
+            if (request.getRequestURI().equals("/refresh")) {
+                jwtToken = getRefreshJwtFromRequest(request); // Только refresh-токен
+            } else {
+                jwtToken = getAccessJwtFromRequest(request); // Остальные запросы
+            }
 
             if (jwtToken != null) {
-                // Извлекаем имя пользователя из токена
-                String username = jwtUtil.extractUsername(jwtToken);
-                logger.info("Extracted username: " + username);
-
-                // Если имя пользователя не пустое и контекст безопасности пуст
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    // Загружаем данные пользователя из базы данных
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                    logger.debug("Loaded user details: " + userDetails);
-
-                    // Проверяем валидность токена
-                    if (jwtUtil.validateToken(jwtToken, userDetails)) {
-                        // Устанавливаем аутентификацию в контексте
-                        setAuthentication(userDetails, request);
-                        logger.info("JWT token validated successfully for user: " + username);
-                    } else {
-//                        log.info("JWT token is invalid for user {}", username);
-                        logger.warn("Invalid JWT token for user: " + username);
-                    }
-                }
+                processJwtToken(jwtToken, request);
             }
         } catch (Exception ex) {
-
             logger.error("Error during JWT authentication: ", ex);
         }
+
+
+//        try {
+//            // Извлечение токена
+//            String jwtToken = getAccessJwtFromRequest(request);
+//            logger.info("Extracted JWT token: " + jwtToken);
+//
+//            if (jwtToken != null) {
+//                // Извлекаем имя пользователя из токена
+//                String username = jwtUtil.extractUsername(jwtToken);
+//                logger.info("Extracted username: " + username);
+//
+//                // Если имя пользователя не пустое и контекст безопасности пуст
+//                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+//                    // Загружаем данные пользователя из базы данных
+//                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+//                    logger.debug("Loaded user details: " + userDetails);
+//
+//                    // Проверяем валидность токена
+//                    if (jwtUtil.validateToken(jwtToken, userDetails)) {
+//                        // Устанавливаем аутентификацию в контексте
+//                        setAuthentication(userDetails, request);
+//                        logger.info("JWT token validated successfully for user: " + username);
+//                    } else {
+////                        log.info("JWT token is invalid for user {}", username);
+//                        logger.warn("Invalid JWT token for user: " + username);
+//                    }
+//                }
+//            }
+//        } catch (Exception ex) {
+//
+//            logger.error("Error during JWT authentication: ", ex);
+//        }
 
         // Передача запроса дальше
         filterChain.doFilter(request, response);
     }
 
-
-    private String getAccessJwtFromRequest(HttpServletRequest request) {
-
-        // Проверка заголовка Authorization
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7); // Убираем "Bearer "
-        }
-
-        // Проверка токена в пользовательском заголовке Access-Token
-        String accessTokenHeader = request.getHeader("Access-Token");
-        if (accessTokenHeader != null && !accessTokenHeader.isEmpty()) {
-            return accessTokenHeader;
-        }
-
-        // Проверка токена в куках
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("access_token".equals(cookie.getName())) { // Имя куки должно совпадать
-                    return cookie.getValue();
-                }
+    private void processJwtToken(String jwtToken, HttpServletRequest request) {
+        String username = jwtUtil.extractUsername(jwtToken);
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            if (jwtUtil.validateToken(jwtToken, userDetails)) {
+                setAuthentication(userDetails, request);
+                logger.info("JWT token validated successfully for user: " + username);
+            } else {
+                logger.warn("Invalid JWT token for user: " + username);
             }
         }
+    }
 
-        // Если токен не найден нигде
-        return null;
+
+    private String getAccessJwtFromRequest(HttpServletRequest request) {
+//        return getTokenFromRequest(request, "Authorization", "access_token");
+        String tokenFromRequest = getTokenFromRequest(request, "Authorization", "access_token");
+        if (tokenFromRequest != null && tokenFromRequest.startsWith("Bearer ")) {
+            return tokenFromRequest.substring(7);
+        }
+        return tokenFromRequest;
     }
 
     private String getRefreshJwtFromRequest(HttpServletRequest request) {
+        return getTokenFromRequest(request, "Refresh-Token", "refresh_token");
+    }
 
-        // Проверка токена в пользовательском заголовке Refresh-Token
-        String refreshTokenHeader = request.getHeader("Refresh-Token");
-        if (refreshTokenHeader != null && !refreshTokenHeader.isEmpty()) {
-            return refreshTokenHeader;
+
+    private String getTokenFromRequest(HttpServletRequest request, String headerName, String cookieName) {
+
+        // Проверка в пользовательском заголовке
+        String tokenHeader = request.getHeader(headerName);
+        if (tokenHeader != null && !tokenHeader.isEmpty()) {
+            return tokenHeader;
         }
 
-        // Проверка токена в куках
+        // Проверка в куках
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("refresh_token".equals(cookie.getName())) { // Имя куки должно совпадать
+                if (cookieName.equals(cookie.getName())) {
                     return cookie.getValue();
                 }
             }
         }
 
-        // Если токен не найден нигде
-        return null;
+        return null; // Если токен не найден
     }
 
     private void setAuthentication(UserDetails userDetails, HttpServletRequest request) {

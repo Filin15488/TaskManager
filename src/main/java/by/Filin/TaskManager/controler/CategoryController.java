@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,14 +25,14 @@ import java.util.List;
 @Tag(name = "Category controller", description = "Контроллер для управления категориями")
 @RestController
 @RequestMapping("/api/categories")
+@RequiredArgsConstructor
 public class CategoryController {
     CategoryService categoryService;
 
-    @Autowired
-    public CategoryController(CategoryService categoryService) {
-        this.categoryService = categoryService;
-    }
-
+//    @Autowired
+//    public CategoryController(CategoryService categoryService) {
+//        this.categoryService = categoryService;
+//    }
 
     @Operation(summary = "Получение списка всех категорий", description = "Возвращает массив всех категорий",
             responses = {
@@ -84,7 +85,7 @@ public class CategoryController {
     )
     @PostMapping
     public  ResponseEntity<?> createCategory(@Parameter(description = "создание новой категории на основе предоставленных данных", required = true)
-                                             @RequestBody CategoryRequestDTO categoryRequestDTO) {
+                                             @Valid @RequestBody CategoryRequestDTO categoryRequestDTO) {
         CategoryDTO newCategory = categoryService.createCategory(categoryRequestDTO);
         newCategory.setCreatedAt(OffsetDateTime.now());
         return ResponseEntity.status(201).body(newCategory);
@@ -109,7 +110,7 @@ public class CategoryController {
             @Parameter(description = "ID категории", required = true)
             @PathVariable Long id,
             @Parameter(description = "Данные для обновления", required = true)
-            @RequestBody CategoryUpdateDTO categoryUpdateDTO) {
+            @Valid @RequestBody CategoryUpdateDTO categoryUpdateDTO) {
         CategoryDTO result = categoryService.updateCategory(id, categoryUpdateDTO);
         return ResponseEntity.ok(result);
     }
@@ -127,8 +128,8 @@ public class CategoryController {
             )
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategoryById(@Parameter(description = "ID категории", required = true)
-                                                @PathVariable Long id) {
+    public ResponseEntity<Void> deleteCategoryById( @Parameter(description = "ID категории", required = true)
+                                                    @PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
     }
