@@ -34,7 +34,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"username\": \"alice\",\n  \"password\": \"alicePassword\"\n}\n",
+							"raw": "{\n  \"username\": \"user\",\n  \"password\": \"password\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -52,7 +52,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"username\":   \"user9\",\n  \"password\":   \"password9\",\n  \"email\" :     \"use98@gmail.com\"\n}\n",
+							"raw": "{\n  \"username\":   \"user\",\n  \"password\":   \"password\",\n  \"email\" :     \"use@gmail.com\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -82,7 +82,16 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "{{DEFAULTHOST}}/admin/users"
+						"url": "{{HOST}}/admin/users"
+					},
+					"response": []
+				},
+				{
+					"name": "setAdminRole",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": "{{HOST}}/admin/set/2"
 					},
 					"response": []
 				}

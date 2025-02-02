@@ -15,6 +15,7 @@ import by.Filin.TaskManager.repository.UserRepository;
 import by.Filin.TaskManager.token.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import java.time.Duration;
 import java.util.logging.Logger;
 import lombok.RequiredArgsConstructor;
@@ -133,7 +134,7 @@ public class AuthService {
         setTokensInResponse(response, newAccessToken.getToken(), refreshToken);
     }
 
-    public void register(RegisterRequest registerRequest, HttpServletResponse response) {
+    public void register(@Valid RegisterRequest registerRequest, HttpServletResponse response) {
 
         logger.info("Starting user registration: " + registerRequest.getUsername());
 
